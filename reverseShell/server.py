@@ -2,6 +2,8 @@ import threading
 import socket
 import os
 
+from setuptools import Command
+
 clients = []
 
 def main():
@@ -10,19 +12,27 @@ def main():
     try:
         ip = 'localhost'
         porta = 80
+        BUFFER_SIZE = 1024 * 128
         server.bind((ip, porta))
         server.listen(10)
-        print(f"Ouvindo no ip {ip} na porta {porta}")
-    except  Exception as ex:
-        return print(f'\n Não foi possível iniciar o servidor: {str(ex)}.\n')
 
-    while True:
         client, addr = server.accept()
         print(addr)
         clients.append(client)
 
-        thread = threading.Thread(target=messagesTreatment, args=[client])
-        thread.start()
+        print(f"Ouvindo no ip {ip} na porta {porta}")
+
+          #recebendo o diretório de trabalho atual do cliente
+        cwd = client.recv(BUFFER_SIZE).decode()
+        print("Diretório de trabalho atual:\n", cwd)
+
+    except  Exception as ex:
+        return print(f'\n Não foi possível iniciar o servidor: {str(ex)}.\n')
+
+
+
+    while True:
+       Command = input =(f"{cwd} $> ")
 
 def messagesTreatment(client):
     while True:
